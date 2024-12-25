@@ -38,6 +38,31 @@ pub struct SearchResult<T> {
     pub params: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// Browse result
+pub struct BrowseResult<T> {
+    /// Hits
+    pub hits: Vec<T>,
+    /// Number of hits
+    pub nb_hits: u64,
+    /// Page
+    pub page: u64,
+    /// Number of pages
+    pub nb_pages: u64,
+    /// Number of hits per page
+    pub hits_per_page: u64,
+    #[serde(rename = "processingTimeMS")]
+    /// Processing time (ms)
+    pub processing_time_ms: u64,
+    /// Query
+    pub query: String,
+    /// Params
+    pub params: String,
+    /// Cursor
+    pub cursor: Option<String>,
+}
+
 #[derive(Clone, Debug, PartialEq, Hash)]
 /// [https://www.algolia.com/doc/api-reference/api-parameters/aroundRadius/](https://www.algolia.com/doc/api-reference/api-parameters/aroundRadius/)
 pub enum AroundRadius {
@@ -411,6 +436,276 @@ pub struct SearchQuery {
     percentile_computation: Option<u64>,
 }
 
+#[derive(Debug, Serialize, Default, Builder)]
+#[serde(rename_all = "camelCase")]
+#[builder(default)]
+/// algolia Browse parameters
+/// see [https://www.algolia.com/doc/api-reference/api-methods/browse/#parameters](https://www.algolia.com/doc/api-reference/api-methods/browse/#parameters)
+// Gathered from: https://github.com/algolia/algoliasearch-client-python/blob/05ac3190a7efdd6f7368aeb766000c116dde0ae8/algoliasearch/search/models/browse_params_object.py#L132
+pub struct BrowseQuery {
+    // search
+    #[builder(setter(into))]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/query/](https://www.algolia.com/doc/api-reference/api-parameters/query/)
+    query: Option<String>,
+
+    // attributes
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/](https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/)
+    attributes_to_retrieve: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [](https://www.algolia.com/doc/api-reference/api-parameters/restrictSearchableAttributes/https://www.algolia.com/doc/api-reference/api-parameters/restrictSearchableAttributes/)
+    restrict_searchable_attributes: Option<Vec<String>>,
+
+    // filtering
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/filters/](https://www.algolia.com/doc/api-reference/api-parameters/filters/)
+    filters: Option<String>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/facetFilters/](https://www.algolia.com/doc/api-reference/api-parameters/facetFilters/)
+    facet_filters: Option<Vec<StringOrVecOfString>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/optionalFilters/](https://www.algolia.com/doc/api-reference/api-parameters/optionalFilters/)
+    optional_filters: Option<Vec<StringOrVecOfString>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/numericFilters/](https://www.algolia.com/doc/api-reference/api-parameters/numericFilters/)
+    numeric_filters: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/tagFilters/](https://www.algolia.com/doc/api-reference/api-parameters/tagFilters/)
+    tag_filters: Option<StringOrVecOfString>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/sumOrFiltersScores/](https://www.algolia.com/doc/api-reference/api-parameters/sumOrFiltersScores/)
+    sum_or_filters_scores: Option<bool>,
+
+    // faceting
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/facets/](https://www.algolia.com/doc/api-reference/api-parameters/facets/)
+    facets: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/maxValuesPerFacet/](https://www.algolia.com/doc/api-reference/api-parameters/maxValuesPerFacet/)
+    max_values_per_facet: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/facetingAfterDistinct/](https://www.algolia.com/doc/api-reference/api-parameters/facetingAfterDistinct/)
+    faceting_after_distinct: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/sortFacetValuesBy/](https://www.algolia.com/doc/api-reference/api-parameters/sortFacetValuesBy/)
+    sort_facet_values_by: Option<settings::SortFacetValuesBy>,
+
+    // highlighting-snippeting
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/attributesToHighlight/](https://www.algolia.com/doc/api-reference/api-parameters/attributesToHighlight/)
+    attributes_to_highlight: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/attributesToSnippet/](https://www.algolia.com/doc/api-reference/api-parameters/attributesToSnippet/)
+    attributes_to_snippet: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/highlightPreTag/](https://www.algolia.com/doc/api-reference/api-parameters/highlightPreTag/)
+    highlight_pre_tag: Option<String>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/highlightPostTag/](https://www.algolia.com/doc/api-reference/api-parameters/highlightPostTag/)
+    highlight_post_tag: Option<String>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/snippetEllipsisText/](https://www.algolia.com/doc/api-reference/api-parameters/snippetEllipsisText/)
+    snippet_ellipsis_text: Option<String>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/restrictHighlightAndSnippetArrays/](https://www.algolia.com/doc/api-reference/api-parameters/restrictHighlightAndSnippetArrays/)
+    restrict_highlight_and_snippet_arrays: Option<bool>,
+
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/offset/](https://www.algolia.com/doc/api-reference/api-parameters/offset/)
+    offset: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/length/](https://www.algolia.com/doc/api-reference/api-parameters/length/)
+    length: Option<u64>,
+
+    // typos
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "minWordSizefor1Typo")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor1Typo/](https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor1Typo/)
+    min_word_sizefor_1_typo: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "minWordSizefor2Typo")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor2Typos/](https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor2Typos/)
+    min_word_sizefor_2_typos: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/typoTolerance/](https://www.algolia.com/doc/api-reference/api-parameters/typoTolerance/)
+    typo_tolerance: Option<settings::TypoTolerance>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/allowTyposOnNumericTokens/](https://www.algolia.com/doc/api-reference/api-parameters/allowTyposOnNumericTokens/)
+    allow_typos_on_numeric_tokens: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/disableTypoToleranceOnAttributes/](https://www.algolia.com/doc/api-reference/api-parameters/disableTypoToleranceOnAttributes/)
+    disable_typo_tolerance_on_attributes: Option<Vec<String>>,
+
+    // geo-search
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/aroundLatLng/](https://www.algolia.com/doc/api-reference/api-parameters/aroundLatLng/)
+    around_lat_lng: Option<String>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "aroundLatLngViaIP")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/aroundLatLngViaIP/](https://www.algolia.com/doc/api-reference/api-parameters/aroundLatLngViaIP/)
+    around_lat_lng_via_ip: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/aroundRadius/](https://www.algolia.com/doc/api-reference/api-parameters/aroundRadius/)
+    around_radius: Option<AroundRadius>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/aroundPrecision/](https://www.algolia.com/doc/api-reference/api-parameters/aroundPrecision/)
+    around_precision: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/minimumAroundRadius/](https://www.algolia.com/doc/api-reference/api-parameters/minimumAroundRadius/)
+    minimum_around_radius: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/insideBoundingBox/](https://www.algolia.com/doc/api-reference/api-parameters/insideBoundingBox/)
+    inside_bounding_box: Option<Vec<f64>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/insidePolygon/](https://www.algolia.com/doc/api-reference/api-parameters/insidePolygon/)
+    inside_polygon: Option<Vec<f64>>,
+
+    // languages
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/ignorePlurals/](https://www.algolia.com/doc/api-reference/api-parameters/ignorePlurals/)
+    ignore_plurals: Option<settings::IgnorePlurals>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/removeStopWords/](https://www.algolia.com/doc/api-reference/api-parameters/removeStopWords/)
+    remove_stop_words: Option<settings::IgnorePlurals>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/queryLanguages/](https://www.algolia.com/doc/api-reference/api-parameters/queryLanguages/)
+    query_languages: Option<Vec<String>>,
+
+    // query-strategy
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/queryType/](https://www.algolia.com/doc/api-reference/api-parameters/queryType/)
+    query_type: Option<settings::QueryType>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/removeWordsIfNoResults/](https://www.algolia.com/doc/api-reference/api-parameters/removeWordsIfNoResults/)
+    remove_words_if_no_results: Option<settings::RemoveWordsIfNoResults>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/advancedSyntax/](https://www.algolia.com/doc/api-reference/api-parameters/advancedSyntax/)
+    advanced_syntax: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/optionalWords/](https://www.algolia.com/doc/api-reference/api-parameters/optionalWords/)
+    optional_words: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/disableExactOnAttributes/](https://www.algolia.com/doc/api-reference/api-parameters/disableExactOnAttributes/)
+    disable_exact_on_attributes: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/exactOnSingleWordQuery/](https://www.algolia.com/doc/api-reference/api-parameters/exactOnSingleWordQuery/)
+    exact_on_single_word_query: Option<settings::ExactOnSingleWordQuery>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/alternativesAsExact/](https://www.algolia.com/doc/api-reference/api-parameters/alternativesAsExact/)
+    alternatives_as_exact: Option<settings::AlternativesAsExact>,
+
+    // query-rules
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/enableRules/](https://www.algolia.com/doc/api-reference/api-parameters/enableRules/)
+    enable_rules: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/ruleContexts/](https://www.algolia.com/doc/api-reference/api-parameters/ruleContexts/)
+    rule_contexts: Option<Vec<String>>,
+
+    // personalization
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/enablePersonalization/](https://www.algolia.com/doc/api-reference/api-parameters/enablePersonalization/)
+    enable_personalization: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/userToken/](https://www.algolia.com/doc/api-reference/api-parameters/userToken/)
+    user_token: Option<String>,
+
+    // advanced
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/distinct/](https://www.algolia.com/doc/api-reference/api-parameters/distinct/)
+    distinct: Option<settings::Distinct>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/getRankingInfo/](https://www.algolia.com/doc/api-reference/api-parameters/getRankingInfo/)
+    get_ranking_info: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/clickAnalytics/](https://www.algolia.com/doc/api-reference/api-parameters/clickAnalytics/)
+    click_analytics: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/analytics/](https://www.algolia.com/doc/api-reference/api-parameters/analytics/)
+    analytics: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/analyticsTags/](https://www.algolia.com/doc/api-reference/api-parameters/analyticsTags/)
+    analytics_tags: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/synonyms/](https://www.algolia.com/doc/api-reference/api-parameters/synonyms/)
+    synonyms: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/replaceSynonymsInHighlight/](https://www.algolia.com/doc/api-reference/api-parameters/replaceSynonymsInHighlight/)
+    replace_synonyms_in_highlight: Option<bool>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/minProximity/](https://www.algolia.com/doc/api-reference/api-parameters/minProximity/)
+    min_proximity: Option<settings::MinProximity>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/responseFields/](https://www.algolia.com/doc/api-reference/api-parameters/responseFields/)
+    response_fields: Option<Vec<String>>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/maxFacetHits/](https://www.algolia.com/doc/api-reference/api-parameters/maxFacetHits/)
+    max_facet_hits: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/percentileComputation/](https://www.algolia.com/doc/api-reference/api-parameters/percentileComputation/)
+    percentile_computation: Option<u64>,
+    #[builder(setter(into))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cursor: Option<String>,
+}
+
 #[cfg(test)]
 mod query_builder {
     use super::*;
@@ -439,6 +734,15 @@ struct SearchQueryBody {
 impl From<&str> for SearchQuery {
     fn from(item: &str) -> Self {
         SearchQuery {
+            query: Some(item.to_string()),
+            ..Default::default()
+        }
+    }
+}
+
+impl From<&str> for BrowseQuery {
+    fn from(item: &str) -> Self {
+        BrowseQuery {
             query: Some(item.to_string()),
             ..Default::default()
         }
@@ -591,6 +895,58 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
             .await
             .map_err(|e| e.into())
     }
+
+    /// Browse the index.
+    /// This method accepts a [&str](https://doc.rust-lang.org/std/str/index.html):
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use tokio;
+    /// # use algoliasearch::{Client, BrowseQueryBuilder, Error};
+    /// # #[derive(Debug, Serialize, Deserialize)]
+    /// # struct User;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<Error>> {
+    /// # let index = Client::default().init_index::<User>("users");
+    /// let res = index.browse("Bernardo").await?;
+    /// dbg!(res.hits); // [User { name: "Bernardo", age: 32} ]
+    /// # Ok(())
+    /// # }
+    /// ```
+    /// Or a [BrowseQuery](struct.BrowseQuery.html) object, that can be build with the [BrowseQueryBuilder](struct.BrowseQueryBuilder.html):
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use tokio;
+    /// # use algoliasearch::{settings::TypoTolerance, Client, BrowseQueryBuilder, Error};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let query = BrowseQueryBuilder::default()
+    ///     .query("Bernardo".to_string())
+    ///     .analytics(false)
+    ///     .build()
+    ///     .unwrap();
+    /// let res = index.browse(query).await?;
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub async fn browse(&self, query: impl Into<BrowseQuery>) -> Result<BrowseResult<T>, Error> {
+        let query = query.into();
+        let uri = format!("{}/indexes/{}/browse", self.base_url, self.index_name);
+        let params = serde_urlencoded::to_string(query).expect("failed to encode params");
+        let params = &SearchQueryBody { params };
+        Client::new()
+            .post(&uri)
+            .headers(self.get_headers())
+            .json(&params)
+            .send()
+            .await?
+            .json::<BrowseResult<T>>()
+            .await
+            .map_err(|e| e.into())
+    }
+
     /// Add an object to the index.
     /// ```no_run
     /// # #[macro_use] extern crate serde_derive;

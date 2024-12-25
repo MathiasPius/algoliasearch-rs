@@ -48,7 +48,7 @@ pub mod index;
 
 pub use client::Client;
 pub use error::Error;
-pub use index::{settings, SearchQueryBuilder};
+pub use index::{settings, BrowseQueryBuilder, SearchQueryBuilder};
 
 static APPLICATION_ID_HEADER: &str = "x-algolia-application-id";
 static API_KEY_HEADER: &str = "x-algolia-api-key";
